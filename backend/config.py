@@ -35,6 +35,8 @@ FOCUS_KEYWORDS = [
     "lecture",
     "tutorial",
     "course",
+    "study",
+    "project",
 ]
 
 DISTRACTOR_KEYWORDS = [

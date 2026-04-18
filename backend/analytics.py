@@ -6,7 +6,7 @@ def calculate_focus_score(category: str, event_rate: float, forbidden: bool = Fa
     activity_score = min(max(event_rate / 10 * 100, 0), 100)
     if forbidden:
         category_weight *= 0.15
-    score = int((category_weight * 0.6 + activity_score / 100 * 0.4) * 100)
+    score = int((category_weight * 0.85 + activity_score / 100 * 0.15) * 100)
     return max(0, min(score, 100))
 
 

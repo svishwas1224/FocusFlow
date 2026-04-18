@@ -137,10 +137,12 @@ class ActivityMonitor:
     def scan_active_window() -> str:
         if sys.platform.startswith("win"):
             try:
-                from pywinauto import Desktop
-
-                active = Desktop(backend="uia").get_active()
-                return active.window_text() or ""
+                import ctypes
+                hwnd = ctypes.windll.user32.GetForegroundWindow()
+                length = ctypes.windll.user32.GetWindowTextLengthW(hwnd)
+                buf = ctypes.create_unicode_buffer(length + 1)
+                ctypes.windll.user32.GetWindowTextW(hwnd, buf, length + 1)
+                return buf.value if buf.value else ""
             except Exception:
                 return ""
         return ""

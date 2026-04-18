@@ -1,7 +1,7 @@
 import asyncio
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from fastapi import FastAPI, Depends, HTTPException
@@ -27,6 +27,7 @@ class TimerState:
     started_at: Optional[datetime] = None
     duration_seconds: int = 0
     is_running: bool = False
+    session_id: Optional[int] = None
 
 
 timer_state = TimerState()
@@ -37,11 +38,30 @@ async def get_db() -> AsyncSession:
         yield session
 
 
+async def passive_logger():
+    while True:
+        await asyncio.sleep(60)
+        async for session in database.get_session():
+            current_score = float(monitor.monitor.state.focus_score)
+            stmt = database.Session(
+                focus_score=current_score,
+                deep_work=current_score >= 50,
+                distraction_count=0,
+                start=datetime.now() - timedelta(minutes=1),
+                end=datetime.now()
+            )
+            session.add(stmt)
+            await session.commit()
+            break
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await database.init_db()
     monitor.monitor.start()
+    task = asyncio.create_task(passive_logger())
     yield
+    task.cancel()
     monitor.monitor.stop()
 
 
@@ -76,7 +96,7 @@ async def close_session(session_id: int, session_in: schemas.SessionCreate, db: 
     await db.execute(
         update(database.Session)
         .where(database.Session.id == session_id)
-        .values(end=datetime.utcnow(), focus_score=session_in.focus_score)
+        .values(end=datetime.now(), focus_score=session_in.focus_score)
     )
     await db.commit()
     await db.refresh(session_record)
@@ -185,24 +205,50 @@ async def update_settings(setting_in: schemas.SettingBase, db: AsyncSession = De
 
 
 @app.post("/timer/start")
-def start_timer(command: schemas.TimerCommand) -> Dict[str, Any]:
+async def start_timer(command: schemas.TimerCommand, db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
     mode = command.mode
     if mode not in config.POMODORO_SETTINGS:
         raise HTTPException(status_code=400, detail="Invalid timer mode")
     timer_state.mode = mode
-    timer_state.started_at = datetime.utcnow()
+    timer_state.started_at = datetime.now()
     timer_state.duration_seconds = config.POMODORO_SETTINGS[mode]
     timer_state.is_running = True
     monitor.monitor.block_sites()
+    
+    # Record to DB
+    current_score = float(monitor.monitor.state.focus_score)
+    stmt = database.Session(
+        focus_score=current_score,
+        deep_work=current_score >= 80,
+        distraction_count=0,
+    )
+    db.add(stmt)
+    await db.commit()
+    await db.refresh(stmt)
+    timer_state.session_id = stmt.id
+
     return {"mode": mode, "duration": timer_state.duration_seconds, "running": True}
 
 
 @app.post("/timer/stop")
-def stop_timer() -> Dict[str, Any]:
+async def stop_timer(db: AsyncSession = Depends(get_db)) -> Dict[str, Any]:
+    if timer_state.session_id:
+        result = await db.execute(select(database.Session).where(database.Session.id == timer_state.session_id))
+        session_record = result.scalars().first()
+        if session_record:
+            current_score = float(monitor.monitor.state.focus_score)
+            await db.execute(
+                update(database.Session)
+                .where(database.Session.id == timer_state.session_id)
+                .values(end=datetime.now(), focus_score=current_score, deep_work=current_score >= 50)
+            )
+            await db.commit()
+
     timer_state.mode = None
     timer_state.started_at = None
     timer_state.duration_seconds = 0
     timer_state.is_running = False
+    timer_state.session_id = None
     monitor.monitor.unblock_sites()
     return {"running": False}
 
