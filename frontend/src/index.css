@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  color: #e2e8f0;
+  background-color: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+button {
+  appearance: none;
+  border: none;
+  cursor: pointer;
+  border-radius: 9999px;
+  background: #334155;
+  color: #f8fafc;
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+}
+
+button:hover {
+  background: #475569;
+}
+
+header,
+section,
+.card {
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid #334155;
+  border-radius: 1.75rem;
+  padding: 1.25rem;
+}
+
+header {
+  margin-bottom: 1.5rem;
+}
+
+section + section {
+  margin-top: 1rem;
+}
+
+.app-grid {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.flex-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+.card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 0.75rem;
+}
+
+.card-body {
+  background: #0f172a;
+  border: 1px solid #1e293b;
+  border-radius: 1.5rem;
+  padding: 1rem;
+}

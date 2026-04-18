@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+SQLAlchemy[aio]
+aiosqlite
+pydantic
+psutil
+pywinauto
+scikit-learn
+python-multipart
+httpx
+pynput
+plyer
+pytest
+pytest-asyncio
