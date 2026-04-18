@@ -1,6 +1,6 @@
-import { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog } from 'electron'
-import { spawn } from 'child_process'
-import path from 'path'
+const { app, BrowserWindow, Tray, Menu, nativeImage, ipcMain, dialog } = require('electron')
+const { spawn } = require('child_process')
+const path = require('path')
 
 let tray = null
 let mainWindow = null
@@ -50,7 +50,7 @@ function createWindow() {
     mainWindow.hide()
   })
   mainWindow.on('close', () => {
-    stopBackend()
+    // Backend handled externally
   })
 }
 
@@ -81,7 +81,6 @@ ipcMain.handle('invoke-backend', async (_, method, endpoint, body) => {
 })
 
 app.whenReady().then(() => {
-  startBackend()
   createWindow()
   createTray()
   app.on('activate', () => {

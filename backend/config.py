@@ -5,7 +5,6 @@ SQLITE_URL = f"sqlite+aiosqlite:///{BASE_DIR / 'focusflow_ai.db'}"
 
 BLOCKED_SITES = [
     "facebook.com",
-    "youtube.com",
     "twitter.com",
     "instagram.com",
     "tiktok.com",
@@ -13,7 +12,6 @@ BLOCKED_SITES = [
 ]
 
 FORBIDDEN_APPS = [
-    "chrome - youtube",
     "steam",
     "discord",
     "twitch",
@@ -33,10 +31,13 @@ FOCUS_KEYWORDS = [
     "report",
     "email",
     "meeting",
+    "class",
+    "lecture",
+    "tutorial",
+    "course",
 ]
 
 DISTRACTOR_KEYWORDS = [
-    "youtube",
     "facebook",
     "twitter",
     "instagram",
